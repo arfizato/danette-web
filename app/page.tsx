@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Card } from "primereact/card";
@@ -24,28 +24,25 @@ interface BarcodeStats {
 export default function Home() {
 	const [items, setItems] = useState<ConveyorItem[]>([]);
 	const [stats, setStats] = useState<BarcodeStats[]>([]);
+	const x = useRef(0);
 
 	const fetchData = useCallback(async () => {
 		try {
 			const response = await fetch("/api/data");
 			const data = await response.json();
 
-			setItems(data.items);
-
 			// const statsString = JSON.stringify(data.stats);
-			console.log("wafdsfds");
+			console.log(
+				"willUpdate?",
+				data.items.length !== x.current,
+				data.items.length,
+				x.current
+			);
 
-			if (data.stats.length !== stats.length) {
-				console.log(
-					"waaw",
-					data.stats.length !== stats.length,
-					data.stats.length,
-					stats.length
-				);
-				setStats((prevStats) => {
-					console.log(data.stats);
-					return data.stats;
-				});
+			if (data.items.length !== x.current) {
+				setItems(data.items);
+				x.current = data.items.length;
+				setStats(data.stats);
 			}
 		} catch (error) {
 			console.error("Error fetching data:", error);
@@ -54,7 +51,7 @@ export default function Home() {
 
 	useEffect(() => {
 		fetchData();
-		const interval = setInterval(fetchData, 3000);
+		const interval = setInterval(fetchData, 1000);
 		return () => clearInterval(interval);
 	}, []);
 
