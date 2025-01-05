@@ -1,6 +1,6 @@
-import Database from 'better-sqlite3';
+import Database from "better-sqlite3";
 
-const db = new Database('conveyor.db');
+const db = new Database("conveyor.db");
 
 // Create the table if it doesn't exist
 db.exec(`
@@ -15,25 +15,28 @@ db.exec(`
 `);
 
 export interface ConveyorItem {
-  id: number;
-  barcode: string;
-  expiration_date: string;
-  name: string;
-  validity: boolean;
-  image_url?: string;
+	id: number;
+	barcode: string;
+	expiration_date: string;
+	name: string;
+	validity: boolean;
+	image_url?: string;
 }
 
 export function getConveyorItems(): ConveyorItem[] {
-  const stmt = db.prepare('SELECT * FROM conveyor_items ORDER BY id DESC LIMIT 100');
-  return stmt.all() as ConveyorItem[];
+	const stmt = db.prepare(
+		"SELECT * FROM conveyor_items ORDER BY id DESC LIMIT 100"
+	);
+	return stmt.all() as ConveyorItem[];
 }
 
 export function getBarcodeStats(): { barcode: string; count: number }[] {
-  const stmt = db.prepare(`
+	const stmt = db.prepare(`
     SELECT barcode, COUNT(*) as count 
     FROM conveyor_items 
+    WHERE validity = 1
     GROUP BY barcode 
     ORDER BY count DESC
   `);
-  return stmt.all() as { barcode: string; count: number }[];
+	return stmt.all() as { barcode: string; count: number }[];
 }

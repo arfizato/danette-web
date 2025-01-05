@@ -12,9 +12,9 @@ interface BarcodeStats {
 // Generate distinct colors for different bars
 const generateColors = (count: number) => {
 	const colors = [];
-	for (let i = 0; i < count; i++) {
+	for (let i = 1; i <= count; i++) {
 		const hue = (i * 137.508) % 360; // Use golden angle approximation for better distribution
-		colors.push(`hsl(${hue}, 70%, 50%)`);
+		colors.push(`hsl(${hue}, 70%, 20%)`);
 	}
 	return colors;
 };

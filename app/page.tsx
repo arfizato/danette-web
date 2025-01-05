@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Chart } from "primereact/chart";
 import { Card } from "primereact/card";
 import Image from "next/image";
+import { BarcodeChart } from "@/components/BarCodeChart";
 
 interface ConveyorItem {
 	id: number;
@@ -21,55 +21,40 @@ interface BarcodeStats {
 	count: number;
 }
 
-const x = [
-	{
-		id: 123132,
-		barcode: "7896546",
-		expiration_date: "22 dec",
-		name: "vanille",
-		validity: true,
-		image_url: "string",
-	},
-];
-
 export default function Home() {
-	const [items, setItems] = useState<ConveyorItem[]>();
-	const [chartData, setChartData] = useState({
-		labels: [],
-		datasets: [
-			{
-				label: "Barcode Count",
-				data: [],
-				backgroundColor: "#4CAF50",
-			},
-		],
-	});
+	const [items, setItems] = useState<ConveyorItem[]>([]);
+	const [stats, setStats] = useState<BarcodeStats[]>([]);
 
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
 			const response = await fetch("/api/data");
 			const data = await response.json();
 
 			setItems(data.items);
 
-			setChartData({
-				labels: data.stats.map((stat: BarcodeStats) => stat.barcode),
-				datasets: [
-					{
-						label: "Barcode Count",
-						data: data.stats.map((stat: BarcodeStats) => stat.count),
-						backgroundColor: "#4CAF50",
-					},
-				],
-			});
+			// const statsString = JSON.stringify(data.stats);
+			console.log("wafdsfds");
+
+			if (data.stats.length !== stats.length) {
+				console.log(
+					"waaw",
+					data.stats.length !== stats.length,
+					data.stats.length,
+					stats.length
+				);
+				setStats((prevStats) => {
+					console.log(data.stats);
+					return data.stats;
+				});
+			}
 		} catch (error) {
 			console.error("Error fetching data:", error);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		fetchData();
-		const interval = setInterval(fetchData, 1000);
+		const interval = setInterval(fetchData, 3000);
 		return () => clearInterval(interval);
 	}, []);
 
@@ -105,7 +90,7 @@ export default function Home() {
 		<div className='max-w-7xl mx-auto p-4'>
 			<h1 className='text-3xl font-bold mb-6'>Conveyor Line Monitor</h1>
 
-			<div className='grid grid-cols-1 slg:grid-cols-2 gap-6 mb-6'>
+			<div className='grid grid-cols-1 s2xl:grid-cols-2 gap-6 mb-6'>
 				<Card title='Recent Items'>
 					<DataTable value={items} scrollable scrollHeight='400px' stripedRows>
 						<Column body={imageTemplate} style={{ width: "80px" }} />
@@ -121,26 +106,8 @@ export default function Home() {
 						/>
 					</DataTable>
 				</Card>
-				<Card title='Barcode Distribution'>
-					<Chart
-						type='bar'
-						data={chartData}
-						options={{
-							scales: {
-								y: {
-									beginAtZero: true,
-								},
-							},
-							maintainAspectRatio: false,
-							plugins: {
-								legend: {
-									display: false,
-								},
-							},
-						}}
-						height='400px'
-					/>
-				</Card>
+
+				<BarcodeChart data={stats} />
 			</div>
 		</div>
 	);
